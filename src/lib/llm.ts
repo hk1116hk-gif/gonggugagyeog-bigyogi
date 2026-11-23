@@ -3,9 +3,20 @@ import type { ParsedProduct } from './types';
 
 let client: OpenAI | null = null;
 
+/**
+ * 무료로 쓰기: OPENAI_API_KEY 자리에 무료 키를 넣고, OPENAI_BASE_URL로 무료 제공자를 가리키면 된다.
+ * - Google Gemini 무료: https://aistudio.google.com 에서 키 발급 → OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/ , OPENAI_MODEL=gemini-2.0-flash
+ * - Groq 무료: https://console.groq.com 에서 키 발급 → OPENAI_BASE_URL=https://api.groq.com/openai/v1 , OPENAI_MODEL=llama-3.3-70b-versatile (이미지 전사는 미지원이라 텍스트 분석만 됨)
+ * 아무것도 안 넣으면 OpenAI 기본 엔드포인트를 쓴다.
+ */
 export function getOpenAI(): OpenAI | null {
   if (!process.env.OPENAI_API_KEY) return null;
-  if (!client) client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  if (!client) {
+    client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_BASE_URL || undefined,
+    });
+  }
   return client;
 }
 

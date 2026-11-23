@@ -41,11 +41,20 @@ npm run build
 
 | 변수 | 필수 | 설명 |
 |---|---|---|
-| `DATABASE_URL` | 필수 | 로컬 `file:./dev.db` (SQLite). 운영은 Postgres URL |
+| `DATABASE_URL` | 선택 | 로컬 `file:./dev.db` (SQLite). 운영은 Postgres URL. 없어도 분석은 돌아가고 기록 저장만 안 됩니다. 무료: Neon 무료 티어 |
 | `OPENAI_API_KEY` | 필수 | 상품 파싱·이미지 전사(Vision). 모델: `OPENAI_MODEL` (기본 `gpt-4o-mini`) |
-| `TAVILY_API_KEY` | 필수* | 웹 검색. 없으면 SerpAPI/Brave 폴백, 셋 다 없으면 DB 과거 가격만으로 판정 |
+| `OPENAI_BASE_URL` | 선택 | 무료 AI로 바꾸는 설정. Gemini 무료면 `https://generativelanguage.googleapis.com/v1beta/openai/` + `OPENAI_MODEL=gemini-2.0-flash`, Groq 무료면 `https://api.groq.com/openai/v1` + `OPENAI_MODEL=llama-3.3-70b-versatile` |
+| `TAVILY_API_KEY` | 필수* | 웹 검색. 무료 티어 월 1,000회. 없으면 SerpAPI/Brave 폴백, 셋 다 없으면 DB 과거 가격만으로 판정 |
 | `SERPAPI_API_KEY` | 선택 | Tavily 폴백 |
-| `BRAVE_API_KEY` | 선택 | Tavily/SerpAPI 폴백 |
+| `BRAVE_API_KEY` | 선택 | Tavily/SerpAPI 폴백. Brave 무료 티어 월 2,000회 |
+
+## 무료로 쓰기
+
+돈 안 드는 조합: **Tavily 무료 키**(월 1,000회 검색) + **Gemini 무료 키**(Google AI Studio 발급, 월 무료 한도 넉넉) + **DB 없음**(기록 저장만 안 됨) 또는 **Neon 무료 DB**.
+
+1. [Tavily](https://tavily.com)에서 무료 키 발급 → Vercel 환경변수 `TAVILY_API_KEY`에 입력
+2. [Google AI Studio](https://aistudio.google.com)에서 무료 키 발급 → `OPENAI_API_KEY`에 입력, `OPENAI_BASE_URL`에 `https://generativelanguage.googleapis.com/v1beta/openai/` 입력, `OPENAI_MODEL`에 `gemini-2.0-flash` 입력
+3. 저장 후 Redeploy (또는 Git 푸시하면 자동 배포)
 
 키가 없으면 앱이 영문 오류 대신 "OPENAI_API_KEY가 설정되지 않았어요"처럼
 한글로 어떤 키가 필요한지 알려줍니다.
