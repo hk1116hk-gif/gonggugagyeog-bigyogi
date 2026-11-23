@@ -60,6 +60,7 @@ export interface SourceItem {
   unitPrice: number | null;
   source: string; // 지름알림, 11번가, 토스쇼핑 등
   kind: 'past_group' | 'regular' | 'similar';
+  rating?: number | null; // 스니펫에서 찾은 평점(0~5)
 }
 
 export interface SimilarRow {
@@ -68,6 +69,7 @@ export interface SimilarRow {
   price: number;
   url?: string;
   isThis: boolean;
+  rating?: number | null;
 }
 
 export interface ProductResult {
@@ -94,6 +96,9 @@ export interface ProductResult {
   similarRows: SimilarRow[];
   warnings: string[];
   sources: SourceItem[];
+  rating?: number | null; // 이 상품 후기 평점 (0~5)
+  reviewCount?: number | null; // 후기 개수
+  ratingSource?: string | null; // 평점 출처 (도메인)
 }
 
 export interface AnalysisResult {

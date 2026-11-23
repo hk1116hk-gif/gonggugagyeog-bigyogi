@@ -97,6 +97,68 @@ export async function webSearch(query: string): Promise<SearchHit[]> {
  * 그래서 가격 추출은 정규식(결정적)으로 하고, LLM은 파싱에만 쓴다.
  * 블록별 병렬이 필요하면 호출부에서 Promise.all로 나눠 부른다.
  */
+/** 스니펫/제목에서 평점(0~5)을 뽑는다. "평점 4.7" / "★4.8" / "4.5/5" / "별점 4.5점" 형태. */
+export function extractRating(text: string): number | null {
+  const vals: number[] = [];
+  const patterns = [
+    /평점\s*(\d(?:\.\d)?)/g,
+    /별점\s*(\d(?:\.\d)?)/g,
+    /★\s*(\d(?:\.\d)?)/g,
+    /(\d(?:\.\d)?)\s*\/\s*5/g,
+    /(\d(?:\.\d)?)\s*점/g,
+  ];
+  for (const re of patterns) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text))) {
+      const v = Number(m[1]);
+      if (v > 0 && v <= 5) vals.push(v);
+    }
+  }
+  if (!vals.length) return null;
+  vals.sort((a, b) => a - b);
+  return vals[Math.floor(vals.length / 2)];
+}
+
+/** 스니펫/제목에서 후기 개수를 뽑는다. "후기 1,234개" / "리뷰 3,456건" 형태. */
+export function extractReviewCount(text: string): number | null {
+  const re = /(?:후기|리뷰|상품평)\s*([\d,]+)\s*(?:개|건)/g;
+  let m: RegExpExecArray | null;
+  let best: number | null = null;
+  while ((m = re.exec(text))) {
+    const v = Number(m[1].replace(/,/g, ''));
+    if (v > 0 && (best == null || v > best)) best = v;
+  }
+  return best;
+}
+
+export interface ProductRating {
+  rating: number;
+  reviewCount: number | null;
+  source: string;
+}
+
+/** 상품 후기·평점 검색: 같은 상품의 후기에서 평점을 모은다. */
+export async function searchProductRating(brand: string, name: string): Promise<ProductRating | null> {
+  const hits = await webSearch(`${brand} ${name} 후기 평점 리뷰`);
+  if (!hits.length) return null;
+  const ratings: number[] = [];
+  let reviewCount: number | null = null;
+  let source = '';
+  for (const h of hits) {
+    const text = `${h.title} ${h.snippet}`;
+    const r = extractRating(text);
+    if (r != null) {
+      ratings.push(r);
+      if (!source) source = h.source;
+    }
+    const c = extractReviewCount(text);
+    if (c != null && (reviewCount == null || c > reviewCount)) reviewCount = c;
+  }
+  if (!ratings.length) return null;
+  ratings.sort((a, b) => a - b);
+  return { rating: ratings[Math.floor(ratings.length / 2)], reviewCount, source: source || hits[0].source };
+}
+
 export function hitsToSources(
   hits: SearchHit[],
   kind: SourceItem['kind'],
@@ -119,6 +181,7 @@ export function hitsToSources(
       unitPrice: toUnitPrice(price, product),
       source: hit.source,
       kind,
+      rating: extractRating(`${hit.title} ${hit.snippet}`),
     });
   }
   return out;

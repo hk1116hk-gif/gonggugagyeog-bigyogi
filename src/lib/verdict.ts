@@ -73,6 +73,7 @@ export function judge(input: VerdictInput): ProductResult {
       price: s.price ?? 0,
       url: s.url,
       isThis: false,
+      rating: s.rating ?? null,
     })),
   ]
     .filter((r) => r.unitPrice > 0)

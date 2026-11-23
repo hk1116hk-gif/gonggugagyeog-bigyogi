@@ -220,7 +220,7 @@ export default function Home() {
           {result.products.map((p, i) => (
             <div key={i} className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                <div><b>{p.brand} {p.name}</b><div style={{ color: '#78716c', fontSize: 13 }}>{p.spec} · {p.unitLabel}</div></div>
+                <div><b>{p.brand} {p.name}</b><div style={{ color: '#78716c', fontSize: 13 }}>{p.spec} · {p.unitLabel}{p.rating != null && <> · ⭐ {p.rating}{p.reviewCount != null ? ` · 후기 ${p.reviewCount.toLocaleString('ko-KR')}개` : ''}</>}</div></div>
                 <span className={`badge ${p.verdict}`}>{verdictIcon(p.verdict)} {verdictLabel(p.verdict)}</span>
               </div>
               <div className="tiles">
@@ -248,7 +248,7 @@ export default function Home() {
                         <div className="nm">{row.isThis ? '⭐ ' : ''}{row.name}</div>
                         <div className="bar"><i className={row.isThis ? 'this' : ''} style={{ width: `${Math.max(8, (row.unitPrice / max) * 100)}%` }} /></div>
                       </div>
-                      <span className="pr">{formatWon(row.unitPrice)}/{p.unitLabel}</span>
+                      <span className="pr">{formatWon(row.unitPrice)}/{p.unitLabel}{row.rating != null ? ` · ⭐${row.rating}` : ''}</span>
                       {!row.isThis && (
                         <span className={`diff ${diff <= 0 ? 'good' : 'bad'}`}>{diff <= 0 ? `${formatWon(-diff)} 싸요 · ${Math.round((-diff / row.unitPrice) * 100)}%` : `${formatWon(diff)} 비싸요 · ${Math.round((diff / row.unitPrice) * 100)}%`}</span>
                       )}

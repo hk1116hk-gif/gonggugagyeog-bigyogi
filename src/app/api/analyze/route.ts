@@ -3,7 +3,7 @@ import { getPrisma, safeDb } from '@/lib/db';
 import { ERROR_MESSAGES, type ErrorCode, type ProductResult, type SourceItem } from '@/lib/types';
 import { parsePostWithLLM, transcribeImageWithVision, getOpenAI } from '@/lib/llm';
 import { parsePostWithRegex, productKey, sameForm, specWithin } from '@/lib/parse';
-import { hitsToSources, webSearch } from '@/lib/search';
+import { hitsToSources, searchProductRating, webSearch } from '@/lib/search';
 import { judge } from '@/lib/verdict';
 
 export const maxDuration = 300;
@@ -112,11 +112,12 @@ export async function POST(req: Request) {
       );
       const pastUnitPrices = (past ?? []).map((o) => o.unitPrice);
 
-      // 3단계 탐색 (아티팩트 4단계 → 3단계로 단축): 동일 상품 공구 / 동일 상품 정가 / 비슷한 모델
-      const [pastHits, regularHits, similarHits] = await Promise.all([
+      // 4단계 탐색: 동일 상품 공구 / 동일 상품 정가 / 비슷한 모델 / 이 상품 후기 평점
+      const [pastHits, regularHits, similarHits, rating] = await Promise.all([
         webSearch(`${product.brand} ${product.name} ${product.spec} 공구 가격`),
         webSearch(`${product.brand} ${product.name} ${product.spec} 가격`),
         webSearch(`${product.name} ${product.spec} 가격`.replace(product.brand, '').trim()),
+        searchProductRating(product.brand, product.name),
       ]);
       const pastSources = hitsToSources(pastHits, 'past_group', product);
       const regularSources = hitsToSources(regularHits, 'regular', product);
@@ -145,6 +146,9 @@ export async function POST(req: Request) {
         similar,
       });
       judged.sources = [...pastSources, ...regularSources, ...similar];
+      judged.rating = rating?.rating ?? null;
+      judged.reviewCount = rating?.reviewCount ?? null;
+      judged.ratingSource = rating?.source ?? null;
       results.push(judged);
 
       for (const s of judged.sources) {
