@@ -1,0 +1,54 @@
+// Prisma schema — 운영용 Postgres (Vercel Postgres / Neon)
+// 사용법: npx prisma generate --schema=prisma/schema.postgres.prisma
+//        npx prisma db push --schema=prisma/schema.postgres.prisma
+// DATABASE_URL="postgresql://user:password@host:5432/db?sslmode=require"
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Analysis {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  inputText  String
+  products   Product[]
+  observations PriceObservation[]
+
+  @@map("analyses")
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  analysisId    Int
+  analysis      Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  brand         String
+  name          String
+  spec          String
+  category      String
+  price         Int
+  unitPrice     Int
+  verdict       String
+  resultJson    String
+
+  @@map("products")
+}
+
+model PriceObservation {
+  id         Int      @id @default(autoincrement())
+  analysisId Int
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  productKey String
+  kind       String
+  price      Int
+  unitPrice  Int
+  source     String
+  url        String?
+  createdAt  DateTime @default(now())
+
+  @@index([productKey, kind])
+  @@map("price_observations")
+}

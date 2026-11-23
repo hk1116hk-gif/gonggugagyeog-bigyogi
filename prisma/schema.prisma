@@ -1,0 +1,54 @@
+// Prisma schema — 로컬 SQLite (기본)
+// 운영(Vercel Postgres / Neon)에서는 prisma/schema.postgres.prisma 를 쓰세요:
+//   npx prisma generate --schema=prisma/schema.postgres.prisma
+//   npx prisma db push --schema=prisma/schema.postgres.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Analysis {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  inputText  String
+  products   Product[]
+  observations PriceObservation[]
+
+  @@map("analyses")
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  analysisId    Int
+  analysis      Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  brand         String
+  name          String
+  spec          String
+  category      String
+  price         Int
+  unitPrice     Int
+  verdict       String
+  resultJson    String // ProductResult 전체 (sources, similarRows 포함)
+
+  @@map("products")
+}
+
+model PriceObservation {
+  id         Int      @id @default(autoincrement())
+  analysisId Int
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  productKey String // 정규화한 상품 키 (브랜드+이름+규격)
+  kind       String // past_group | regular | similar
+  price      Int
+  unitPrice  Int
+  source     String
+  url        String?
+  createdAt  DateTime @default(now())
+
+  @@index([productKey, kind])
+  @@map("price_observations")
+}

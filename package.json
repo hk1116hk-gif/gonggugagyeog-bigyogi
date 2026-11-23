@@ -1,0 +1,34 @@
+{
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@prisma/engines": "5.22.0",
+    "next": "14.2.18",
+    "openai": "^4.73.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tesseract.js": "^5.1.1"
+  },
+  "description": "공구가격 비교기 — 공구 게시글을 입력하면 과거 공구가·정가·비슷한 모델과 비교해 싸요/보통/비싸요를 판정하는 웹 서비스",
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "prisma": "^5.22.0",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "name": "gonggugagyeog-web",
+  "private": true,
+  "scripts": {
+    "build": "prisma generate && next build",
+    "db:push": "prisma db push",
+    "db:push:postgres": "prisma db push --schema=prisma/schema.postgres.prisma",
+    "dev": "next dev",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "start": "next start"
+  },
+  "version": "1.0.0"
+}

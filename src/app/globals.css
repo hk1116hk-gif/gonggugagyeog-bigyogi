@@ -1,0 +1,48 @@
+:root { --bg: #faf7f2; --card: #fff; --ink: #1c1917; --muted: #78716c; --line: #e7e0d6; --accent: #e2481f; --green: #15803d; --amber: #b45309; --red: #dc2626; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, 'Segoe UI', 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--ink); }
+main { max-width: 760px; margin: 0 auto; padding: 20px 16px 64px; }
+header h1 { font-size: 26px; margin: 4px 0; }
+header p { color: var(--muted); margin: 0 0 12px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.chip { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; font: inherit; resize: vertical; }
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.toolbtn { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 12px; cursor: pointer; font-size: 13px; }
+.thumbs { display: flex; gap: 8px; margin-top: 10px; }
+.thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+.samples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.sample { border: 1px solid var(--line); background: #fff7ed; border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+.analyze { width: 100%; background: var(--accent); color: #fff; border: 0; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; cursor: pointer; margin: 12px 0; }
+.analyze:disabled { opacity: .6; cursor: wait; }
+.err { border: 1px solid #fecaca; background: #fef2f2; color: #991b1b; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.err b { display: block; margin-bottom: 4px; }
+.dots { display: flex; gap: 6px; align-items: center; padding: 8px 0; color: var(--muted); font-size: 14px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #d6d3d1; }
+.dot.on { background: var(--accent); }
+.badge { display: inline-block; border-radius: 999px; padding: 5px 12px; font-weight: 700; font-size: 14px; }
+.badge.cheap { background: #dcfce7; color: var(--green); }
+.badge.fair { background: #fef3c7; color: var(--amber); }
+.badge.expensive { background: #fee2e2; color: var(--red); }
+.badge.unknown { background: #e7e5e4; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.tile { background: #fafaf9; border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px; text-align: center; }
+.tile .ic { font-size: 18px; }
+.tile .v { font-weight: 700; font-size: 14px; margin-top: 2px; }
+.tile .l { font-size: 11px; color: var(--muted); }
+.rankrow { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid #f5f5f4; }
+.rankrow .nm { flex: 1; font-size: 13px; }
+.rankrow .pr { font-weight: 700; font-size: 13px; white-space: nowrap; }
+.bar { height: 6px; background: #f5f5f4; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.bar i.this { background: var(--green); }
+.diff { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.diff.good { color: var(--green); } .diff.bad { color: var(--red); }
+.warn { color: var(--amber); font-size: 13px; }
+details { font-size: 13px; color: var(--muted); margin-top: 8px; }
+details a { color: inherit; }
+.hist { font-size: 13px; }
+.hist button { display: block; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid #f5f5f4; padding: 8px 0; cursor: pointer; font-size: 13px; }
+.copybtn { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
+@media (max-width: 560px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
