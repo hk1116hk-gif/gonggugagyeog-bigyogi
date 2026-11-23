@@ -31,6 +31,20 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
 .progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #fbbf24); border-radius: 4px; transition: width .6s ease; }
 .steplabel { font-size: 14px; color: var(--muted); }
 .steplabel b { color: var(--ink); }
+.stages { padding: 12px 16px; }
+.stage { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f5f4; }
+.stage:last-of-type { border-bottom: 0; }
+.stage.todo { opacity: .45; }
+.st-ic { width: 30px; height: 30px; border-radius: 50%; background: #f5f5f4; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.stage.active .st-ic { background: #fff7ed; border: 1px solid #fdba74; }
+.stage.done .st-ic { background: #dcfce7; color: var(--green); font-weight: 700; }
+.spin-sm { width: 15px; height: 15px; border: 2px solid #fed7aa; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.st-tx { display: flex; flex-direction: column; gap: 1px; }
+.st-tx b { font-size: 15px; }
+.st-sub { font-size: 13px; color: var(--muted); animation: fadein .4s ease; }
+.st-sub.done { color: var(--green); }
+@keyframes fadein { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+.st-elapsed { margin-top: 8px; font-size: 13px; color: var(--muted); }
 .skel { border-radius: 12px; background: linear-gradient(90deg, #f5f5f4 25%, #e7e5e4 50%, #f5f5f4 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 .badge { display: inline-block; border-radius: 999px; padding: 5px 12px; font-weight: 700; font-size: 14px; }

@@ -10,7 +10,14 @@ const SAMPLES: Array<{ label: string; text: string }> = [
   { label: '후라이팬 혼합', text: '해피콜 브릭스 통 3중 에칭 IH 스텐 프라이팬 28cm 1개 20,900원\n해피콜 브릭스 통 3중 에칭 IH 스텐 궁중팬 28cm 1개 21,900원\n해피콜 키친핏 IH 프라이팬 2P (프라이팬 20cm + 프라이팬 28cm) 24,900원' },
 ];
 
-const STEPS = ['글 읽기', '상품 뽑기', '웹 탐색', '판정하기'];
+const STAGES = [
+  { icon: '📄', title: '원본 분석', subs: ['게시글 글자 읽는 중…', '이미지 전사 중…', '가격·상품 정보 찾는 중…'] },
+  { icon: '🧺', title: '상품 뽑기', subs: ['상품 나누는 중…', '브랜드·규격·가격 정리 중…', '세트·수량 확인 중…'] },
+  { icon: '🔍', title: '가격 검색', subs: ['과거 공구가 찾는 중…', '일반 판매가 비교 중…', '비슷한 모델 찾는 중…', '출처 모으는 중…'] },
+  { icon: '📊', title: '리포트 정리', subs: ['단위가격 계산 중…', '싸요·보통·비싸요 판정 중…', '비교표 정리 중…'] },
+];
+// 단계별 예상 경과 시간(초): 0단계 <10, 1단계 <20, 2단계 <45, 3단계 45초~
+const STAGE_AT = [10, 20, 45];
 
 function verdictIcon(v: ProductResult['verdict']) {
   return v === 'cheap' ? '👍' : v === 'fair' ? '😐' : v === 'expensive' ? '👎' : '❓';
@@ -20,7 +27,8 @@ export default function Home() {
   const [text, setText] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const step = elapsed < STAGE_AT[0] ? 0 : elapsed < STAGE_AT[1] ? 1 : elapsed < STAGE_AT[2] ? 2 : 3;
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [history, setHistory] = useState<Array<{ id: number; createdAt: string; productCount: number; cheapCount: number; preview: string }>>([]);
@@ -68,12 +76,11 @@ export default function Home() {
       return;
     }
     setLoading(true);
-    setStep(0);
-    const timer = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 15000);
+    setElapsed(0);
+    const timer = setInterval(() => setElapsed((e) => e + 1), 1000);
     try {
       let ocrText = '';
       if (images.length) {
-        setStep(0);
         ocrText = await ocrImages(images);
       }
       const res = await fetch('/api/analyze', {
@@ -85,7 +92,7 @@ export default function Home() {
       if (!j.ok) {
         // 연결이 끊겼는데 서버에 저장이 됐을 수 있다 — 최근 분석을 자동으로 찾아본다.
         if (res.status === 504 || j.errorCode === 'timeout') {
-          setStep(3);
+          setElapsed(60);
           const rec = await fetch('/api/analyze');
           const rj = await rec.json();
           if (rj.ok) {
@@ -192,20 +199,30 @@ export default function Home() {
 
       {loading && (
         <>
-          <div className="progress"><i style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} /></div>
-          <div className="dots">
-            {STEPS.map((s, i) => <span key={s} className={`dot ${i <= step ? 'on' : ''}`} />)}
-            <span className="steplabel"><b>{STEPS[step]}</b>… {step < STEPS.length - 1 ? '다음 단계로 넘어가고 있어요' : '거의 다 됐어요'}</span>
+          <div className="progress"><i style={{ width: `${((step + 1) / STAGES.length) * 100}%` }} /></div>
+          <div className="card stages">
+            {STAGES.map((s, i) => {
+              const status = i < step ? 'done' : i === step ? 'active' : 'todo';
+              const sub = s.subs[Math.floor(elapsed / 3) % s.subs.length];
+              return (
+                <div key={s.title} className={`stage ${status}`}>
+                  <span className="st-ic">
+                    {status === 'done' ? '✓' : status === 'active' ? <span className="spin-sm" /> : s.icon}
+                  </span>
+                  <div className="st-tx">
+                    <b>{s.title}</b>
+                    {status === 'active' && <span key={sub} className="st-sub">{sub}</span>}
+                    {status === 'done' && <span className="st-sub done">완료</span>}
+                  </div>
+                </div>
+              );
+            })}
+            <div className="st-elapsed">⏱ {elapsed}초째 분석 중이에요</div>
           </div>
           <div className="card" aria-hidden>
             <div className="skel" style={{ height: 20, width: '55%', marginBottom: 12 }} />
             <div className="skel" style={{ height: 14, width: '80%', marginBottom: 8 }} />
             <div className="skel" style={{ height: 14, width: '65%' }} />
-          </div>
-          <div className="card" aria-hidden>
-            <div className="skel" style={{ height: 20, width: '45%', marginBottom: 12 }} />
-            <div className="skel" style={{ height: 14, width: '75%', marginBottom: 8 }} />
-            <div className="skel" style={{ height: 14, width: '60%' }} />
           </div>
         </>
       )}
