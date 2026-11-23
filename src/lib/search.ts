@@ -100,12 +100,12 @@ export async function webSearch(query: string): Promise<SearchHit[]> {
 /** 스니펫/제목에서 평점(0~5)을 뽑는다. "평점 4.7" / "★4.8" / "4.5/5" / "별점 4.5점" 형태. */
 export function extractRating(text: string): number | null {
   const vals: number[] = [];
+  // "5점 만점" 같은 표현이 5점으로 오독돼서, 평점·별점·★·/5 형태만 인정한다.
   const patterns = [
     /평점\s*(\d(?:\.\d)?)/g,
     /별점\s*(\d(?:\.\d)?)/g,
     /★\s*(\d(?:\.\d)?)/g,
     /(\d(?:\.\d)?)\s*\/\s*5/g,
-    /(\d(?:\.\d)?)\s*점/g,
   ];
   for (const re of patterns) {
     let m: RegExpExecArray | null;
@@ -121,7 +121,7 @@ export function extractRating(text: string): number | null {
 
 /** 스니펫/제목에서 후기 개수를 뽑는다. "후기 1,234개" / "리뷰 3,456건" 형태. */
 export function extractReviewCount(text: string): number | null {
-  const re = /(?:후기|리뷰|상품평)\s*([\d,]+)\s*(?:개|건)/g;
+  const re = /(?:후기|리뷰|상품평|리뷰수)\s*([\d,]+)\s*(?:개|건)?/g;
   let m: RegExpExecArray | null;
   let best: number | null = null;
   while ((m = re.exec(text))) {
