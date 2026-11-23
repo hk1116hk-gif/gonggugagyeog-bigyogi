@@ -53,21 +53,6 @@ export default function Home() {
     });
   }, [images.length]);
 
-  // 클라이언트 OCR (Tesseract.js): 이미지를 넣으면 글자를 먼저 읽어 텍스트에 합친다.
-  async function ocrImages(imgs: string[]): Promise<string> {
-    try {
-      const mod = await import('tesseract.js');
-      const out: string[] = [];
-      for (const img of imgs) {
-        const r = await mod.recognize(img, 'kor+eng');
-        if (r.data.text.trim()) out.push(r.data.text);
-      }
-      return out.join('\n');
-    } catch {
-      return '';
-    }
-  }
-
   async function analyze() {
     setError(null);
     setResult(null);
@@ -79,14 +64,12 @@ export default function Home() {
     setElapsed(0);
     const timer = setInterval(() => setElapsed((e) => e + 1), 1000);
     try {
-      let ocrText = '';
-      if (images.length) {
-        ocrText = await ocrImages(images);
-      }
+      // 이미지는 서버에서 AI 비전으로 전사한다. 브라우저 OCR(Tesseract)은
+      // 숫자를 잘못 읽어('7,900원 80%' → '79,008원') 가격을 망가뜨려서 빼기로 했다.
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postText: [text, ocrText].filter(Boolean).join('\n'), images }),
+        body: JSON.stringify({ postText: text, images }),
       });
       const j = await res.json();
       if (!j.ok) {
