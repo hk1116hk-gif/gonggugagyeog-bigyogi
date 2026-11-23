@@ -22,7 +22,7 @@
   "name": "gonggugagyeog-web",
   "private": true,
   "scripts": {
-    "build": "prisma generate && next build",
+    "build": "node scripts/prebuild.js && next build",
     "db:push": "prisma db push",
     "db:push:postgres": "prisma db push --schema=prisma/schema.postgres.prisma",
     "dev": "next dev",

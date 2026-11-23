@@ -43,7 +43,11 @@ async function chat<T>(messages: OpenAI.ChatCompletionMessageParam[], json: bool
     max_tokens: 4000,
   });
   const text = res.choices[0]?.message?.content ?? '';
-  if (json) return JSON.parse(text) as T;
+  if (json) {
+    // Gemini가 가끔 ```json 펜스로 감싸서 준다 — 벗겨내고 파싱한다.
+    const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    return JSON.parse(cleaned) as T;
+  }
   return text as unknown as T;
 }
 
@@ -51,23 +55,36 @@ export interface ParseResponse {
   products: ParsedProduct[];
 }
 
+const PARSE_SYSTEM =
+  '공구 게시글 일부에서 상품을 JSON으로 추출해. 응답은 {"products":[...]} 만. 각 상품: brand, name, spec(예 "100g"/"28cm"/"500ml"), specAmount(숫자), specUnit("g"|"ml"|"cm"|"piece"), quantity(팩/개 수, 없으면 1), price(공구 총액 원, 숫자만), shipping(배송비, 무료면 0), freeShippingThreshold(무료배송 기준액, 없으면 null), category("food"|"drink"|"household"|"other"). 식품은 food, 음료·액체는 drink, 후라이팬 등 생활용품은 household. 최종가(쿠폰 적용가)가 있으면 그걸 price로 써. 소비자가는 price로 쓰지 마. 정상가·최저가·특가가 함께 있으면 특가(공구가)를 price로 써. 상품명이 없는 조각(가격만 있는 줄)은 상품으로 만들지 마.';
+
 /**
  * 공구 게시글 본문을 상품 목록으로 파싱한다.
- * 한 번의 거대 호출이 아니라, 본문을 상품 후보 블록으로 나눠 작은 호출을 병렬로 돌린다.
+ * 짧은 글은 한 번의 호출로 통째로 파싱한다 — 가격 줄마다 쪼개면
+ * 정상가/최저가/특가가 따로 떨어져 이름 없는 상품이 생긴다 (이미지 전사본에서 확인됨).
+ * 긴 글만 상품 단위 블록으로 나눠 병렬로 돌린다.
  */
 export async function parsePostWithLLM(postText: string): Promise<ParsedProduct[]> {
-  // 1) 후보 블록 나누기: 줄 단위로 가격(원)이 있는 줄을 중심으로 묶는다.
-  const lines = postText.split('\n').map((l) => l.trim()).filter(Boolean);
-  const blocks: string[] = [];
-  let cur: string[] = [];
-  for (const line of lines) {
-    cur.push(line);
-    if (/원/.test(line) && cur.length >= 2) {
-      blocks.push(cur.join('\n'));
-      cur = [];
+  if (postText.length <= 4000) {
+    try {
+      const out = await chat<ParseResponse>(
+        [
+          { role: 'system', content: PARSE_SYSTEM },
+          { role: 'user', content: postText },
+        ],
+        true,
+      );
+      return (out.products ?? []).filter((p) => p.name && p.name.trim() && p.price > 0).slice(0, 6);
+    } catch {
+      return [];
     }
   }
-  if (cur.length) blocks.push(cur.join('\n'));
+
+  // 긴 글: 빈 줄·구분선(---)·번호 항목으로 상품 블록을 나눈다.
+  const blocks = postText
+    .split(/\n\s*(?:---|\d+\.\s)\s*\n|\n\s*\n/)
+    .map((b) => b.trim())
+    .filter((b) => b.length > 0);
   const chunks = blocks.length ? blocks.slice(0, 6) : [postText];
 
   const results = await Promise.all(
@@ -75,16 +92,12 @@ export async function parsePostWithLLM(postText: string): Promise<ParsedProduct[
       try {
         const out = await chat<ParseResponse>(
           [
-            {
-              role: 'system',
-              content:
-                '공구 게시글 일부에서 상품을 JSON으로 추출해. 응답은 {"products":[...]} 만. 각 상품: brand, name, spec(예 "100g"/"28cm"/"500ml"), specAmount(숫자), specUnit("g"|"ml"|"cm"|"piece"), quantity(팩/개 수, 없으면 1), price(공구 총액 원, 숫자만), shipping(배송비, 무료면 0), freeShippingThreshold(무료배송 기준액, 없으면 null), category("food"|"drink"|"household"|"other"). 식품은 food, 음료·액체는 drink, 후라이팬 등 생활용품은 household. 최종가(쿠폰 적용가)가 있으면 그걸 price로 써. 소비자가는 price로 쓰지 마.',
-            },
+            { role: 'system', content: PARSE_SYSTEM },
             { role: 'user', content: chunk },
           ],
           true,
         );
-        return out.products ?? [];
+        return (out.products ?? []).filter((p) => p.name && p.name.trim() && p.price > 0);
       } catch {
         return [] as ParsedProduct[];
       }
