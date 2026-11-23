@@ -16,11 +16,23 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
 .sample { border: 1px solid var(--line); background: #fff7ed; border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
 .analyze { width: 100%; background: var(--accent); color: #fff; border: 0; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; cursor: pointer; margin: 12px 0; }
 .analyze:disabled { opacity: .6; cursor: wait; }
+.analyze.loading { background: linear-gradient(90deg, var(--accent), #f97316, var(--accent)); background-size: 200% 100%; animation: btnflow 1.6s linear infinite; }
+@keyframes btnflow { from { background-position: 0% 0; } to { background-position: 200% 0; } }
+.spin { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; vertical-align: -3px; margin-right: 8px; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.busy { opacity: .55; pointer-events: none; }
 .err { border: 1px solid #fecaca; background: #fef2f2; color: #991b1b; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
 .err b { display: block; margin-bottom: 4px; }
 .dots { display: flex; gap: 6px; align-items: center; padding: 8px 0; color: var(--muted); font-size: 14px; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: #d6d3d1; }
-.dot.on { background: var(--accent); }
+.dot.on { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .6; } }
+.progress { height: 8px; background: #f5f5f4; border-radius: 4px; overflow: hidden; margin: 10px 0 4px; }
+.progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #fbbf24); border-radius: 4px; transition: width .6s ease; }
+.steplabel { font-size: 14px; color: var(--muted); }
+.steplabel b { color: var(--ink); }
+.skel { border-radius: 12px; background: linear-gradient(90deg, #f5f5f4 25%, #e7e5e4 50%, #f5f5f4 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 .badge { display: inline-block; border-radius: 999px; padding: 5px 12px; font-weight: 700; font-size: 14px; }
 .badge.cheap { background: #dcfce7; color: var(--green); }
 .badge.fair { background: #fef3c7; color: var(--amber); }

@@ -145,9 +145,10 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="card">
+      <div className={`card${loading ? ' busy' : ''}`}>
         <textarea
           value={text}
+          disabled={loading}
           onChange={(e) => setText(e.target.value)}
           onPaste={(e) => {
             const items = e.clipboardData?.items;
@@ -185,15 +186,28 @@ export default function Home() {
         </div>
       </div>
 
-      <button className="analyze" onClick={analyze} disabled={loading}>
-        {loading ? '🔍 분석 중…' : '🔍 가격 판정하기'}
+      <button className={`analyze${loading ? ' loading' : ''}`} onClick={analyze} disabled={loading}>
+        {loading ? (<><span className="spin" />분석 중…</>) : '🔍 가격 판정하기'}
       </button>
 
       {loading && (
-        <div className="dots">
-          {STEPS.map((s, i) => <span key={s} className={`dot ${i <= step ? 'on' : ''}`} />)}
-          <span>{STEPS[step]}… 서버에서 분석이 끝났는지 확인 중일 수 있어요</span>
-        </div>
+        <>
+          <div className="progress"><i style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} /></div>
+          <div className="dots">
+            {STEPS.map((s, i) => <span key={s} className={`dot ${i <= step ? 'on' : ''}`} />)}
+            <span className="steplabel"><b>{STEPS[step]}</b>… {step < STEPS.length - 1 ? '다음 단계로 넘어가고 있어요' : '거의 다 됐어요'}</span>
+          </div>
+          <div className="card" aria-hidden>
+            <div className="skel" style={{ height: 20, width: '55%', marginBottom: 12 }} />
+            <div className="skel" style={{ height: 14, width: '80%', marginBottom: 8 }} />
+            <div className="skel" style={{ height: 14, width: '65%' }} />
+          </div>
+          <div className="card" aria-hidden>
+            <div className="skel" style={{ height: 20, width: '45%', marginBottom: 12 }} />
+            <div className="skel" style={{ height: 14, width: '75%', marginBottom: 8 }} />
+            <div className="skel" style={{ height: 14, width: '60%' }} />
+          </div>
+        </>
       )}
       {error && <div className="err"><b>⚠️ 분석에 실패했어요</b>{error}</div>}
 
